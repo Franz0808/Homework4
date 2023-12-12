@@ -1,0 +1,56 @@
+name: 'Check homework submission before grading'
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  check-homework:
+    
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python 3.9 environment
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install nbconvert==7.9 ipython biopython Pillow
+      
+      - name: Checkout Actions Repository
+        uses: actions/checkout@v4
+        with:
+          repository: IB-ULFRI/homework-actions
+          path: ./homework-actions
+
+      - name: Check Syntax
+        uses: ./homework-actions/action-notebook-syntax
+
+      - name: Explicit variables
+        uses: ./homework-actions/action-explicit-variables
+        with:
+          args: >
+            sars_cov_2_per_genome_per_day sars_cov_2_per_nt_per_day
+            ebola_per_genome_per_day ebola_per_nt_per_day
+            zika_per_genome_per_day zika_per_nt_per_day
+            mutation_comments
+            mutations_in_both_variants
+            same_mutation
+            variant_comments
+            sars_cov_2_per_genome_per_day_k2p sars_cov_2_per_nt_per_day_k2p
+            kimura_comment
+        
+      - name: Notebook and helper_functions files present
+        uses: ./homework-actions/action-files-present
+
+      - name: Helper_functions compiles
+        uses: ./homework-actions/action-helper-compiles
+
+      - name: Check Images visible
+        uses: ./homework-actions/action-images-white
